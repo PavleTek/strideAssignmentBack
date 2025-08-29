@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Space relationships
+  subscribedSpaces    SpaceSubscription[]
+  contributedSpaces   SpaceContribution[]
+  
+  // Content relationships
+  articles            Article[]
+  flashcards          Flashcard[]
+  comments            Comment[]
+  reactions           Reaction[]
+  
+  // Alert relationships
+  alerts              Alert[]
+
+  @@map("users")
+}
+
+model Space {
+  id          String   @id @default(cuid())
+  name        String
+  bannerURL   String?
+  about       String?  // Long text description
+  level       Int      @default(1) // 1, 2, or 3 for hierarchy levels
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Parent/Child relationships for hierarchy
+  parentId    String?
+  parent      Space?   @relation("SpaceHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Space[]  @relation("SpaceHierarchy")
+  
+  // Subscriptions and contributions
+  subscribers SpaceSubscription[]
+  contributors SpaceContribution[]
+  
+  // Content (only for level 3 spaces)
+  articles    Article[]
+  flashcards  Flashcard[]
+  
+  // Alerts
+  alerts      Alert[]
+
+  @@map("spaces")
+}
+
+model SpaceSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  spaceId   String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, spaceId])
+  @@map("space_subscriptions")
+}
+
+model SpaceContribution {
+  id        String   @id @default(cuid())
+  userId    String
+  spaceId   String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, spaceId])
+  @@map("space_contributions")
+}
+
+model Article {
+  id        String   @id @default(cuid())
+  title     String
+  text      String   // Long text content
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Author relationship
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Space relationship (only for level 3 spaces)
+  spaceId   String
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  
+  // Comments and reactions
+  comments  Comment[]
+  reactions Reaction[]
+
+  @@map("articles")
+}
+
+model Flashcard {
+  id              String   @id @default(cuid())
+  title           String
+  shortDescription String
+  longDescription  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Author relationship
+  authorId        String
+  author          User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Space relationship (only for level 3 spaces)
+  spaceId         String
+  space           Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  
+  // Comments and reactions
+  comments        Comment[]
+  reactions       Reaction[]
+
+  @@map("flashcards")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  level     Int      @default(1) // 1-4 for comment hierarchy
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Author relationship
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Parent comment relationship (for replies)
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  
+  // Content relationships (comment can be on article or flashcard)
+  articleId String?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  
+  flashcardId String?
+  flashcard   Flashcard? @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  
+  // Reactions
+  reactions Reaction[]
+
+  @@map("comments")
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  emoji     String   // Single emoji character
+  createdAt DateTime @default(now())
+  
+  // User who reacted
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Content relationships (reaction can be on article, flashcard, comment, or alert)
+  articleId String?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  
+  flashcardId String?
+  flashcard   Flashcard? @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  alertId String?
+  alert   Alert? @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  // Ensure one reaction per user per content
+  @@unique([userId, articleId])
+  @@unique([userId, flashcardId])
+  @@unique([userId, commentId])
+  @@unique([userId, alertId])
+  @@map("reactions")
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  type      String   @default("subscription") // For now only subscription alerts
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  // User who receives the alert
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Space where the alert occurred
+  spaceId   String
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  
+  // Reactions
+  reactions Reaction[]
+
+  @@map("alerts")
+}

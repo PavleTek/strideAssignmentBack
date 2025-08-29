@@ -148,48 +148,7 @@ async function main() {
 
   console.log('✅ Created sub-subspaces (Level 3)');
 
-  // Create subspaces under "The Science of Biology" (Level 2)
-  const scientificMethod = await prisma.space.create({
-    data: {
-      name: 'The Scientific Method',
-      about: 'Learn about the systematic approach scientists use to investigate natural phenomena, including observation, hypothesis formation, experimentation, and analysis.',
-      level: 2,
-      parentId: scienceOfBiology.id,
-    },
-  });
-
-  const biologicalOrganization = await prisma.space.create({
-    data: {
-      name: 'Biological Organization',
-      about: 'Explore the hierarchical levels of biological organization, from atoms and molecules to cells, tissues, organs, and complete organisms.',
-      level: 2,
-      parentId: scienceOfBiology.id,
-    },
-  });
-
-  console.log('✅ Created subspaces under "The Science of Biology" (Level 2)');
-
-  // Create sub-subspaces under "The Scientific Method" (Level 3)
-  const hypothesisTesting = await prisma.space.create({
-    data: {
-      name: 'Hypothesis Testing',
-      about: 'Master the process of formulating and testing scientific hypotheses through controlled experiments and statistical analysis.',
-      level: 3,
-      parentId: scientificMethod.id,
-      bannerURL: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    },
-  });
-
-  const experimentalDesign = await prisma.space.create({
-    data: {
-      name: 'Experimental Design',
-      about: 'Learn the principles of designing effective scientific experiments, including controls, variables, and replication.',
-      level: 3,
-      parentId: scientificMethod.id,
-    },
-  });
-
-  console.log('✅ Created sub-subspaces under "The Scientific Method" (Level 3)');
+  console.log('✅ No subspaces created for "The Science of Biology"');
 
   // Create some sample articles and flashcards for Level 3 spaces
   const sampleArticle = await prisma.article.create({
@@ -234,53 +193,62 @@ async function main() {
 
   console.log('✅ Created sample content for Level 3 spaces');
 
-  // Create content for "The Science of Biology" subspaces
-  const hypothesisArticle = await prisma.article.create({
+  // Create content directly in "The Science of Biology" space
+  const biologyArticle1 = await prisma.article.create({
     data: {
       title: 'Understanding the Null Hypothesis',
       text: 'The null hypothesis is a fundamental concept in scientific research that serves as the default assumption in statistical testing. It typically states that there is no significant difference or relationship between variables. For example, if studying the effect of a new drug, the null hypothesis would be that the drug has no effect compared to a placebo. Scientists then design experiments to test this hypothesis, collecting data to determine whether to reject or fail to reject the null hypothesis. This approach helps prevent confirmation bias and ensures that conclusions are based on evidence rather than assumptions.',
       authorId: user1.id,
-      spaceId: hypothesisTesting.id,
+      spaceId: scienceOfBiology.id,
     },
   });
 
-  const hypothesisFlashcard = await prisma.flashcard.create({
+  const biologyFlashcard1 = await prisma.flashcard.create({
     data: {
       title: 'P-Value Significance',
       shortDescription: 'Understanding statistical significance levels',
       longDescription: 'The p-value is a measure of the strength of evidence against the null hypothesis. A p-value of 0.05 or less is typically considered statistically significant, meaning there is less than a 5% probability that the observed results occurred by chance alone. However, p-values should be interpreted carefully - they do not prove that a hypothesis is true, only that the null hypothesis is unlikely given the data. Lower p-values (like 0.01 or 0.001) provide stronger evidence against the null hypothesis. It\'s important to remember that statistical significance does not always equate to practical significance.',
       authorId: user1.id,
-      spaceId: hypothesisTesting.id,
+      spaceId: scienceOfBiology.id,
     },
   });
 
-  const experimentalArticle = await prisma.article.create({
+  const biologyArticle2 = await prisma.article.create({
     data: {
       title: 'Control Groups in Experimental Design',
       text: 'Control groups are essential components of well-designed scientific experiments. They provide a baseline for comparison and help researchers determine whether observed effects are due to the experimental treatment or other factors. In a controlled experiment, participants are randomly assigned to either the experimental group (which receives the treatment) or the control group (which does not). This randomization helps ensure that both groups are similar in all respects except for the treatment being tested. Control groups can be active (receiving a standard treatment) or passive (receiving no treatment or a placebo). The use of control groups is one of the key principles that distinguishes scientific research from anecdotal evidence.',
       authorId: user2.id,
-      spaceId: experimentalDesign.id,
+      spaceId: scienceOfBiology.id,
     },
   });
 
-  const experimentalFlashcard = await prisma.flashcard.create({
+  const biologyFlashcard2 = await prisma.flashcard.create({
     data: {
       title: 'Independent vs Dependent Variables',
       shortDescription: 'Key concepts in experimental design',
       longDescription: 'In experimental design, variables are classified as either independent or dependent. The independent variable is the factor that the researcher manipulates or changes to observe its effect. It is the presumed cause in the experiment. The dependent variable is the outcome that is measured or observed - it is the presumed effect that results from changes in the independent variable. For example, in a study testing the effect of fertilizer on plant growth, the amount of fertilizer would be the independent variable, and plant height would be the dependent variable. Identifying and properly controlling these variables is crucial for drawing valid conclusions from experimental data.',
       authorId: user2.id,
-      spaceId: experimentalDesign.id,
+      spaceId: scienceOfBiology.id,
     },
   });
 
-  console.log('✅ Created content for "The Science of Biology" subspaces');
+  const biologyArticle3 = await prisma.article.create({
+    data: {
+      title: 'The Scientific Method in Biology',
+      text: 'The scientific method is the foundation of biological research and discovery. It involves systematic observation, hypothesis formation, experimentation, data collection, analysis, and conclusion drawing. In biology, this method helps researchers understand complex living systems, from cellular processes to ecosystem dynamics. The iterative nature of the scientific method allows for continuous refinement of our understanding as new evidence emerges. This systematic approach has led to groundbreaking discoveries in genetics, evolution, ecology, and many other biological fields.',
+      authorId: user1.id,
+      spaceId: scienceOfBiology.id,
+    },
+  });
+
+  console.log('✅ Created content directly in "The Science of Biology" space');
 
   // Create some sample comments
   const comment1 = await prisma.comment.create({
     data: {
       text: 'Great explanation of the null hypothesis! This really helped clarify the concept for me.',
       authorId: user2.id,
-      articleId: hypothesisArticle.id,
+      articleId: biologyArticle1.id,
       level: 1,
     },
   });
@@ -289,7 +257,7 @@ async function main() {
     data: {
       text: 'Thanks! I\'m glad it was helpful. The null hypothesis can be tricky to grasp at first.',
       authorId: user1.id,
-      articleId: hypothesisArticle.id,
+      articleId: biologyArticle1.id,
       level: 1,
     },
   });
@@ -298,7 +266,7 @@ async function main() {
     data: {
       text: 'I have a question about p-values - what happens if you get a p-value of exactly 0.05?',
       authorId: user2.id,
-      flashcardId: hypothesisFlashcard.id,
+      flashcardId: biologyFlashcard1.id,
       level: 1,
     },
   });
@@ -362,10 +330,10 @@ async function main() {
   console.log('\n📊 Created:');
   console.log('- 2 test users (user1, user2)');
   console.log('- 5 main spaces (Level 1)');
-  console.log('- 5 subspaces (Level 2)');
-  console.log('- 4 sub-subspaces (Level 3)');
-  console.log('- 4 sample articles');
-  console.log('- 4 sample flashcards');
+  console.log('- 2 subspaces (Level 2)');
+  console.log('- 2 sub-subspaces (Level 3)');
+  console.log('- 7 sample articles (3 in Science of Biology, 4 in other spaces)');
+  console.log('- 6 sample flashcards (2 in Science of Biology, 4 in other spaces)');
   console.log('- 4 sample subscriptions');
   console.log('- 2 sample contributions');
   console.log('- 2 sample alerts');
